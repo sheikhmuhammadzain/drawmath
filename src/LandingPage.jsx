@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, Pen, Brain, Calculator } from 'lucide-react';
+import { ArrowForward, Edit, Psychology, Calculate } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { HeroHighlight, Highlight } from './components/ui/hero-highlight';
 
@@ -40,7 +40,7 @@ export default function LandingPage() {
                 to="/solve"
                 className="px-8 py-3 bg-neutral-800 rounded-lg flex items-center gap-2 hover:bg-neutral-700 transition-all border border-neutral-700"
               >
-                Try Now <ChevronRight className="w-4 h-4" />
+                Try Now <ArrowForward className="w-4 h-4" />
               </Link>
             </div>
           </motion.div>
@@ -61,7 +61,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800"
             >
-              <Pen className="h-6 w-6 mb-4 text-neutral-400" />
+              <Edit className="h-6 w-6 mb-4 text-neutral-400" />
               <h3 className="text-xl font-medium mb-2">Natural Writing</h3>
               <p className="text-neutral-400 text-sm">Write equations naturally with our intuitive interface</p>
             </motion.div>
@@ -69,7 +69,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800"
             >
-              <Brain className="h-6 w-6 mb-4 text-neutral-400" />
+              <Psychology className="h-6 w-6 mb-4 text-neutral-400" />
               <h3 className="text-xl font-medium mb-2">Smart Recognition</h3>
               <p className="text-neutral-400 text-sm">Advanced AI recognizes your mathematical expressions</p>
             </motion.div>
@@ -77,7 +77,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800"
             >
-              <Calculator className="h-6 w-6 mb-4 text-neutral-400" />
+              <Calculate className="h-6 w-6 mb-4 text-neutral-400" />
               <h3 className="text-xl font-medium mb-2">Instant Solutions</h3>
               <p className="text-neutral-400 text-sm">Get immediate results with beautiful formatting</p>
             </motion.div>
