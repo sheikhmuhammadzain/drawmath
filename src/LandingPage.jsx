@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { ArrowForward, Edit, Psychology, Calculate, Star, CheckCircle } from '@mui/icons-material';
+import { ArrowForward, Edit, Psychology, Calculate, Star, CheckCircle, GitHub, LinkedIn, Favorite } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { HeroHighlight, Highlight } from './components/ui/hero-highlight';
+import { HeroHighlight } from './components/ui/hero-highlight';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -234,10 +234,33 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-neutral-900/50">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-neutral-500 text-sm">
-            © 2024 DrawMath. All rights reserved.
-          </p>
+        <div className="max-w-6xl mx-auto text-center space-y-4">
+          <div className="flex items-center justify-center gap-4">
+            <a 
+              href="https://github.com/sheikhmuhammadzain" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-neutral-400 hover:text-white transition-colors"
+            >
+              <GitHub className="w-6 h-6" />
+            </a>
+            <a 
+              href="https://www.linkedin.com/in/muhammad-zain-afzal-649209227/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-neutral-400 hover:text-white transition-colors"
+            >
+              <LinkedIn className="w-6 h-6" />
+            </a>
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-neutral-500 text-sm">
+              © 2024 DrawMath. All rights reserved.
+            </p>
+            <p className="text-neutral-400 text-sm flex items-center justify-center gap-1">
+              Developed with <Favorite className="w-4 h-4 text-red-500" /> by Zain Sheikh
+            </p>
+          </div>
         </div>
       </footer>
     </div>
