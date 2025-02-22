@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import SignatureCanvas from 'react-signature-canvas';
 import { createWorker } from 'tesseract.js';
 import * as math from 'mathjs';
@@ -12,7 +12,7 @@ function EquationSolver() {
   const [solution, setSolution] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const signaturePad = useRef(null);
-  const [showGuideLines, setShowGuideLines] = useState(true);
+  const showGuideLines = true;
 
   useEffect(() => {
     if (signaturePad.current) {
@@ -29,7 +29,7 @@ function EquationSolver() {
     ctx.save();
     
     // Draw center line
-    ctx.strokeStyle = '#e5e7eb';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(0, centerY);
@@ -216,17 +216,17 @@ function EquationSolver() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Math Equation Solver</h1>
-          <Link to="/" className="text-blue-600 hover:text-blue-700">
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-3xl font-medium tracking-tight">Math Equation Solver</h1>
+          <Link to="/" className="text-neutral-400 hover:text-neutral-200 transition-colors">
             Back to Home
           </Link>
         </div>
         
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="border rounded-lg mb-4 relative" style={{ height: '400px', background: 'white' }}>
+        <div className="bg-neutral-900/50 rounded-lg border border-neutral-800 p-6 mb-8">
+          <div className="border border-neutral-800 rounded-lg mb-6 relative" style={{ height: '400px', background: 'black' }}>
             <SignatureCanvas
               ref={signaturePad}
               canvasProps={{
@@ -234,14 +234,14 @@ function EquationSolver() {
                 style: {
                   width: '100%',
                   height: '100%',
-                  background: 'white',
+                  background: 'black',
                 }
               }}
-              backgroundColor="rgb(255,255,255)"
-              penColor="black"
+              backgroundColor="rgb(0,0,0)"
+              penColor="white"
               throttle={0}
-              minWidth={4}
-              maxWidth={5}
+              minWidth={3}
+              maxWidth={4}
               onEnd={() => {
                 if (signaturePad.current) {
                   const canvas = signaturePad.current.getCanvas();
@@ -250,8 +250,8 @@ function EquationSolver() {
                 }
               }}
             />
-            <div className="absolute top-0 left-0 right-0 p-2 text-center text-gray-500 text-sm">
-              Write your equation clearly between the guide lines, keeping symbols well-separated
+            <div className="absolute top-0 left-0 right-0 p-2 text-center text-neutral-500 text-sm">
+              Write your equation clearly between the guide lines
             </div>
           </div>
           
@@ -259,13 +259,20 @@ function EquationSolver() {
             <button
               onClick={processDrawing}
               disabled={isProcessing}
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+              className="px-6 py-2 bg-neutral-800 text-neutral-200 rounded-lg hover:bg-neutral-700 disabled:opacity-50 transition-all border border-neutral-700 flex items-center gap-2"
             >
-              {isProcessing ? 'Processing...' : 'Solve Equation'}
+              {isProcessing ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-neutral-500 border-t-neutral-200 rounded-full animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Solve Equation'
+              )}
             </button>
             <button
               onClick={clearDrawing}
-              className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+              className="px-6 py-2 bg-neutral-900 text-neutral-400 rounded-lg hover:bg-neutral-800 transition-all border border-neutral-800"
             >
               Clear
             </button>
@@ -273,20 +280,20 @@ function EquationSolver() {
         </div>
 
         {equation && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-2">Recognized Equation:</h2>
+          <div className="bg-neutral-900/50 rounded-lg border border-neutral-800 p-6 mb-6">
+            <h2 className="text-xl font-medium mb-4">Recognized Equation</h2>
             <div 
-              className="text-lg mb-4 flex justify-center"
+              className="text-lg flex justify-center text-neutral-200"
               dangerouslySetInnerHTML={renderMath(equation)}
             />
           </div>
         )}
 
         {solution && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-2">Solution:</h2>
+          <div className="bg-neutral-900/50 rounded-lg border border-neutral-800 p-6">
+            <h2 className="text-xl font-medium mb-4">Solution</h2>
             <div 
-              className="text-lg flex justify-center"
+              className="text-lg flex justify-center text-neutral-200"
               dangerouslySetInnerHTML={renderMath(solution)}
             />
           </div>
