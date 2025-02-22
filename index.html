@@ -4,7 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DrawMath</title>
+    <!-- Preload KaTeX fonts -->
+    <link 
+      rel="preload" 
+      href="/node_modules/katex/dist/fonts/KaTeX_Math-Italic.woff2" 
+      as="font" 
+      type="font/woff2" 
+      crossorigin 
+    />
+    <link 
+      rel="preload" 
+      href="/node_modules/katex/dist/fonts/KaTeX_Main-Regular.woff2" 
+      as="font" 
+      type="font/woff2" 
+      crossorigin 
+    />
+    <title>DrawMath - Equation Solver</title>
   </head>
   <body>
     <div id="root"></div>
