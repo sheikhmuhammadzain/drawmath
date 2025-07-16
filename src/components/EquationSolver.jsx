@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SignatureCanvas from 'react-signature-canvas';
-import { createWorker } from 'tesseract.js';
-import * as math from 'mathjs';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import 'katex/dist/katex.min.css';
-import Katex from 'katex';
+import { BlockMath } from 'react-katex';
 
 export default function EquationSolver() {
   const [equation, setEquation] = useState('');
@@ -100,66 +99,6 @@ export default function EquationSolver() {
     }
   };
 
-  const solveEquation = (text) => {
-    try {
-      console.log('Attempting to solve:', text);
-      
-      // Remove any non-essential characters
-      text = text.trim()
-        .replace(/['"]/g, '')
-        .replace(/\s+/g, '')
-        .replace(/[×x]/g, '*')
-        .replace(/[÷]/g, '/');
-
-      // Handle basic arithmetic
-      if (/^[\d\s+\-*/().]+$/.test(text)) {
-        const result = math.evaluate(text);
-        console.log('Basic arithmetic result:', result);
-        return result;
-      }
-
-      // Handle equations with variables
-      if (text.includes('=')) {
-        const [leftSide, rightSide] = text.split('=').map(side => side.trim());
-        console.log('Equation sides:', { left: leftSide, right: rightSide });
-        
-        // Move everything to the left side of the equation
-        const equation = `${leftSide}-(${rightSide})`;
-        console.log('Normalized equation:', equation);
-        
-        try {
-          const parsed = math.parse(equation);
-          const variables = parsed.filter(node => node.isSymbolNode).map(node => node.name);
-          console.log('Found variables:', variables);
-
-          if (variables.length === 1) {
-            const variable = variables[0];
-            const solutions = math.solve(equation, variable);
-            console.log('Solutions:', solutions);
-            return `${variable} = ${solutions.join(' or ')}`;
-          } else if (variables.length === 0) {
-            const result = math.evaluate(equation);
-            console.log('No variables, evaluating as expression:', result);
-            return result;
-          } else {
-            throw new Error(`Found multiple variables: ${variables.join(', ')}`);
-          }
-        } catch (e) {
-          console.error('Math.js error:', e);
-          throw new Error(`Could not solve equation: ${e.message}`);
-        }
-      }
-
-      // If no equals sign, evaluate as expression
-      const result = math.evaluate(text);
-      console.log('Expression result:', result);
-      return result;
-    } catch (error) {
-      console.error('Error in solveEquation:', error);
-      throw new Error(`Could not solve: ${error.message}`);
-    }
-  };
-
   const processDrawing = async () => {
     setIsProcessing(true);
     setError(null);
@@ -174,63 +113,40 @@ export default function EquationSolver() {
         throw new Error('Please draw something first!');
       }
 
-      // Get and preprocess the canvas
+      // Get canvas
       const canvas = signaturePad.current.getCanvas();
       setDebug(prev => prev + '\nPreprocessing image...');
       const processedCanvas = preprocessImage(canvas);
 
-      // Initialize worker
-      setDebug(prev => prev + '\nInitializing Tesseract...');
-      const worker = await createWorker();
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
-      
-      setDebug(prev => prev + '\nConfiguring OCR...');
-      await worker.setParameters({
-        tessedit_char_whitelist: '0123456789+-*/()=xyz^.',
-        tessedit_pageseg_mode: '7',
-        preserve_interword_spaces: '0',
-        tessedit_ocr_engine_mode: '2',
-        tessjs_create_pdf: '0',
-        tessjs_create_hocr: '0',
-      });
+      // Convert to base64
+      const base64Image = processedCanvas.toDataURL('image/jpeg').split(',')[1];
 
-      setDebug(prev => prev + '\nPerforming OCR...');
-      const { data: { text, confidence } } = await worker.recognize(processedCanvas);
-      await worker.terminate();
-
-      setDebug(prev => prev + `\nRecognized text: "${text}" (confidence: ${confidence}%)`);
-
-      if (!text.trim()) {
-        throw new Error('No text was recognized. Please write more clearly.');
+      // Get API key
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('Missing Gemini API key. Please set VITE_GEMINI_API_KEY in your .env file.');
       }
 
-      // Clean up the recognized text
-      let cleanedText = text
-        .replace(/\s+/g, '')
-        .replace(/[×x]/g, '*')
-        .replace(/[÷]/g, '/')
-        .replace(/(\d)([a-z])/gi, '$1*$2')
-        .replace(/([a-z])(\d)/gi, '$1*$2')
-        .replace(/\^(\d+)/g, '^($1)')
-        .replace(/([a-z])\(/, '$1*(')
-        .replace(/\)([a-z])/, ')*$1')
-        .replace(/['"]/g, '')
-        .replace(/[[\]]/g, '')
-        .replace(/[oO]/g, '0')
-        .replace(/[lI]/g, '1')
-        .replace(/[S]/g, '5')
-        .replace(/[B]/g, '8')
-        .replace(/[Z]/g, '2')
-        .replace(/[Tt]/g, '+')
-        .replace(/[Ee]q/gi, '=');
+      // Initialize Gemini
+      setDebug(prev => prev + '\nInitializing Gemini AI...');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      setDebug(prev => prev + `\nCleaned text: "${cleanedText}"`);
-      setEquation(cleanedText);
+      // Prepare content
+      const imagePart = {
+        inlineData: {
+          data: base64Image,
+          mimeType: "image/jpeg"
+        }
+      };
+      const prompt = "Recognize the handwritten math equation in this image and provide only the solved equation in LaTeX format. For example, if the recognized equation is '2+2', the output should be '2+2=4'.";
 
-      const result = solveEquation(cleanedText);
-      setDebug(prev => prev + `\nSolution: ${result}`);
-      setSolution(result.toString());
+      setDebug(prev => prev + '\nSending to Gemini AI...');
+      const result = await model.generateContent([imagePart, { text: prompt }]);
+      const responseText = result.response.text();
+      const cleanedSolution = responseText.replace(/\$/g, '');
+      setDebug(prev => prev + `\nAI Response: ${responseText}`);
+      setSolution(cleanedSolution);
     } catch (error) {
       console.error('Error processing drawing:', error);
       setError(error.message || 'An error occurred while processing. Please try again.');
@@ -317,34 +233,23 @@ export default function EquationSolver() {
         </div>
 
         {error && (
-          <div className="bg-red-900/50 rounded-lg border border-red-800 p-4 mb-6">
-            <p className="text-red-200">{error}</p>
-          </div>
-        )}
-
-        {equation && (
-          <div className="bg-neutral-900/50 rounded-lg border border-neutral-800 p-6 mb-6">
-            <h2 className="text-xl font-medium mb-4">Recognized Equation</h2>
-            <div 
-              className="text-lg flex justify-center text-neutral-200"
-              dangerouslySetInnerHTML={renderMath(equation)}
-            />
+          <div className="mt-4 bg-red-900/50 p-4 rounded-lg border border-red-700">
+            <h3 className="text-lg font-bold text-red-300">Error</h3>
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         {solution && (
-          <div className="bg-neutral-900/50 rounded-lg border border-neutral-800 p-6">
-            <h2 className="text-xl font-medium mb-4">Solution</h2>
-            <div 
-              className="text-lg flex justify-center text-neutral-200"
-              dangerouslySetInnerHTML={renderMath(solution)}
-            />
+          <div className="bg-neutral-800 p-6 rounded-xl">
+            <h3 className="text-xl font-bold mb-4 text-white">Solution:</h3>
+            <BlockMath math={solution} />
           </div>
         )}
 
         {debug && (
-          <div className="mt-8 p-4 bg-neutral-900/30 rounded-lg border border-neutral-800">
-            <pre className="text-xs text-neutral-500 whitespace-pre-wrap">{debug}</pre>
+          <div className="hidden mt-4 bg-neutral-900/50 p-4 rounded-lg border border-neutral-800">
+            <h3 className="text-lg font-bold mb-2 text-neutral-400">Processing Log:</h3>
+            <pre className="whitespace-pre-wrap text-sm text-neutral-500">{debug}</pre>
           </div>
         )}
       </div>
