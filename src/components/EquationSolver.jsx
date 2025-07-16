@@ -139,7 +139,7 @@ export default function EquationSolver() {
           mimeType: "image/jpeg"
         }
       };
-      const prompt = "Recognize the handwritten math equation in this image and provide only the solved equation in LaTeX format. For example, if the recognized equation is '2+2', the output should be '2+2=4'.";
+      const prompt = "Solve the handwritten equation in the image. Provide only the final solution in LaTeX format. For example, for '4x^2 + 3 = 1', the output should be 'x = \\pm \\frac{i\\sqrt{2}}{2}'. Do not include any explanations or steps.";
 
       setDebug(prev => prev + '\nSending to Gemini AI...');
       const result = await model.generateContent([imagePart, { text: prompt }]);
